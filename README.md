@@ -1,5 +1,5 @@
 # go-typesense
-go-typesense is a Go client library for [typesense](https://typesense.org/). Check the [usage](#usage) section or try the [examples](examples/) to see how to work with typesense.
+go-typesense is a Go client library for [typesense](https://typesense.org/). Check the [usage](#usage) section.
 
 ## Features
 * Collections
