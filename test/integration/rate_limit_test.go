@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/aliml92/typesense/typesense"
+	"github.com/aliml92/go-typesense/typesense"
 	"github.com/stretchr/testify/require"
 )
 

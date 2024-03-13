@@ -10,7 +10,7 @@ import (
 
 	dockerClient "github.com/docker/docker/client"
 
-	"github.com/aliml92/typesense/typesense"
+	"github.com/aliml92/go-typesense/typesense"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 )

@@ -1,4 +1,4 @@
-module github.com/aliml92/typesense
+module github.com/aliml92/go-typesense
 
 go 1.21.0
 
