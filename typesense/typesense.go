@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/google/go-querystring/query"
+	"github.com/k0kubun/pp/v3"
 )
 
 const (
@@ -245,6 +246,9 @@ func (c *Client) do(ctx context.Context, req *http.Request) (*http.Response, err
 	if err != nil {
 		defer resp.Body.Close()
 	}
+
+	// TODO: remove later
+	pp.Printf("request body: %v", resp.Body)
 
 	return resp, err
 }
