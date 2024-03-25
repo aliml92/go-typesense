@@ -217,7 +217,7 @@ func (s *DocumentsService) Import(ctx context.Context, collectionName string, bo
 // 	return res, nil
 // }
 
-func (s *DocumentsService) Search(ctx context.Context, collectionName string, opts *SearchParameters) (map[string]interface{}, error) {
+func (s *DocumentsService) Search(ctx context.Context, collectionName string, opts *SearchParameters) (*SearchResult, error) {
 	u := fmt.Sprintf("/collections/%s/documents/search", collectionName)
 	u, err := addOptions(u, opts)
 	if err != nil {
@@ -228,8 +228,8 @@ func (s *DocumentsService) Search(ctx context.Context, collectionName string, op
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	err = s.client.Do(ctx, req, &res)
+	res := &SearchResult{}
+	err = s.client.Do(ctx, req, res)
 	if err != nil {
 		return nil, err
 	}
