@@ -1048,6 +1048,7 @@ type SearchResult struct {
 
 	// Found The number of documents found
 	Found       *int                `json:"found,omitempty"`
+	FoundDocs   *int                `json:"found_docs,omitempty"`  
 	GroupedHits []*SearchGroupedHit `json:"grouped_hits,omitempty"`
 
 	// Hits The documents that matched the search query
