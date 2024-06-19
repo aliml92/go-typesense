@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
-	"sync"
 
 	"github.com/google/go-querystring/query"
 )
@@ -30,10 +29,9 @@ const (
 var errNonNilContext = errors.New("context must be non-nil")
 
 type Client struct {
-	clientMu sync.Mutex
-	client   *http.Client
-
-	ServerURL *url.URL
+	client    *http.Client
+	serverURL *url.URL
+	apiKey    string
 
 	common service
 
@@ -51,49 +49,32 @@ type Client struct {
 	Synonyms        *SynonymsService
 }
 
-type service struct {
-	client *Client
-}
-
-func NewClient(httpClient *http.Client, serverURL string) (*Client, error) {
-	c := &Client{client: httpClient}
-
-	if c.client == nil {
-		c.client = &http.Client{}
+func NewClient(httpClient *http.Client, serverURL, apiKey string) (*Client, error) {
+	if httpClient == nil {
+		httpClient = &http.Client{}
 	}
+
+	var parsedURL *url.URL
 	if serverURL != "" {
-		serverURL = strings.TrimSuffix(serverURL, "/")	
-		url, err := url.Parse(serverURL)
+		var err error
+		parsedURL, err = url.Parse(strings.TrimSuffix(serverURL, "/"))
 		if err != nil {
 			return nil, err
 		}
-		c.ServerURL = url
 	} else {
-		c.ServerURL, _ = url.Parse(defaultServerURL)
+		parsedURL, _ = url.Parse(defaultServerURL)
 	}
 
-	c.initialize()
-	return c, nil
-}
-
-func (c *Client) WithAPIKey(apiKey string) *Client {
-	c2 := c.copy()
-	defer c2.initialize()
-	transport := c2.client.Transport
-	if transport == nil {
-		transport = http.DefaultTransport
+	if apiKey == "" {
+		return nil, errors.New("apiKey is required")
 	}
-	c2.client.Transport = roundTripperFunc(
-		func(r *http.Request) (*http.Response, error) {
-			req := r.Clone(r.Context())
-			req.Header.Set(headerAPIKEy, apiKey)
-			return transport.RoundTrip(req)
-		},
-	)
-	return c2
-}
 
-func (c *Client) initialize() {
+	c := &Client{
+		client:    httpClient,
+		serverURL: parsedURL,
+		apiKey:    apiKey,
+	}
+
 	c.common.client = c
 	c.Collections = (*CollectionsService)(&c.common)
 	c.Documents = (*DocumentsService)(&c.common)
@@ -105,33 +86,20 @@ func (c *Client) initialize() {
 	c.Overrides = (*OverridesService)(&c.common)
 	c.AnalyticsRules = (*AnalyticsRulesService)(&c.common)
 	c.AnalyticsEvents = (*AnalyticsEventsService)(&c.common)
-	c.Presets  = (*PresetsService)(&c.common)
+	c.Presets = (*PresetsService)(&c.common)
 	c.Synonyms = (*SynonymsService)(&c.common)
+
+	return c, nil
 }
 
-func (c *Client) copy() *Client {
-	c.clientMu.Lock()
-
-	clientCopy := *c.client
-	clone := Client{
-		client:    &clientCopy,
-		ServerURL: c.ServerURL,
-	}
-
-	c.clientMu.Unlock()
-	return &clone
-}
-
-type roundTripperFunc func(*http.Request) (*http.Response, error)
-
-func (fn roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) {
-	return fn(r)
+type service struct {
+	client *Client
 }
 
 type RequestOption func(req *http.Request)
 
 func (c *Client) NewRequest(method, urlStr string, body interface{}, opts ...RequestOption) (*http.Request, error) {
-	u, err := c.ServerURL.Parse(urlStr)
+	u, err := c.serverURL.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +128,6 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}, opts ...Req
 				return nil, err
 			}
 		}
-
 	}
 
 	req, err := http.NewRequest(method, u.String(), buf)
@@ -171,6 +138,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}, opts ...Req
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
+
+	req.Header.Set(headerAPIKEy, c.apiKey)
 
 	for _, opt := range opts {
 		opt(req)

@@ -40,7 +40,7 @@ func TestRateLimits(t *testing.T) {
 	require.Equal(t, "Rule added successfully.", createRes.Message)
 
 	// create new client with an api key
-	newClient := baseClient.WithAPIKey("abc")
+	newClient, _ := typesense.NewClient(nil, serverURL, "abc")
 
 	// Make 10 requests in 1m to trigger auto ban
 	for i := 0; i < 10; i++ {

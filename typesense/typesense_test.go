@@ -8,13 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const apiKey = "xyz"
+
 func setup() (*Client, *http.ServeMux, func()) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
 
-	baseClient, _ := NewClient(nil, server.URL)
-
-	client := baseClient.WithAPIKey("xyz")
+	client, _ := NewClient(nil, server.URL, apiKey)
 
 	teardown := func() {
 		server.Close()
@@ -24,19 +24,19 @@ func setup() (*Client, *http.ServeMux, func()) {
 }
 
 func TestNewClient_DefaultConfig(t *testing.T) {
-	c, _ := NewClient(nil, "")
+	c, _ := NewClient(nil, "", apiKey)
 
 	assert.NotNil(t, c)
 	assert.NotNil(t, c.client)
-	assert.Equal(t, defaultServerURL, c.ServerURL.String())
+	assert.Equal(t, defaultServerURL, c.serverURL.String(), apiKey)
 }
 
 func TestNewClient_CustomConfig(t *testing.T) {
 	httpClient := &http.Client{}
 	serverURL := "http://custom"
 
-	c, _ := NewClient(httpClient, serverURL)
+	c, _ := NewClient(httpClient, serverURL, apiKey)
 
 	assert.Equal(t, httpClient, c.client)
-	assert.Equal(t, serverURL, c.ServerURL.String())
+	assert.Equal(t, serverURL, c.serverURL.String())
 }
