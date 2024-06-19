@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	baseClient *typesense.Client
 	client     *typesense.Client
+	serverURL  string
 )
 
 func TestMain(m *testing.M) {
@@ -59,12 +59,11 @@ func TestMain(m *testing.M) {
 
 	time.Sleep(5 * time.Second) // give the server few seconds to get ready
 
-	serverURL := fmt.Sprintf("http://%s", resource.GetHostPort("8108/tcp"))
-	baseClient, err = typesense.NewClient(nil, serverURL)
+	serverURL = fmt.Sprintf("http://%s", resource.GetHostPort("8108/tcp"))
+	client, err = typesense.NewClient(nil, serverURL, "xyz")
 	if err != nil {
 		log.Fatalf("Could not create Typesense client: %v", err)
 	}
-	client = baseClient.WithAPIKey("xyz")
 
 	if err = client.Ping(); err != nil {
 		log.Fatalf("Could not connect to Typesense: %v", err)
