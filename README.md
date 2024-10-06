@@ -25,8 +25,7 @@ go get github.com/aliml92/go-typesense
 ## Usage
 The `go-typesense` package provides a `Client` for accessing typesense server.
 ```go
-	client, _ := typesense.NewClient(nil, "http://localhost:8108")
-	client = client.WithAPIKey("xyz")      
+	client, _ := typesense.NewClient(nil, "http://localhost:8108", "xyz")
 ```
 ### Create a collection
 ```go
@@ -90,11 +89,14 @@ The official documentation for the [Bootstrap API Key](https://typesense.org/doc
 Here is how you can achive this with `go-typesense` library. Let's say `xyz` is 
 the bootstrap API key
 ```go
-	
-	baseClient, _ := typesense.NewClient(nil, "http://localhost:8108")
+	bootstrapAPIKey := "xyz"
+	serverURL := "http://localhost:8108"
 
-	// rootClient is admin client with all persmissions and has no expiration.
-	rootClient := baseClient.WithAPIKey("xyz")
+    // rootClient is admin client with all persmissions and has no expiration.
+	rootClient, _ := typesense.NewClient(nil, serverURL, bootstrapAPIKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// create an admin key with one-month expiration
 	ctx := context.Background()
@@ -114,7 +116,7 @@ the bootstrap API key
 	}
 
     // revocable admin client for day-to-day operations
-	adminClient := baseClient.WithAPIKey(*key.Value)
+	adminClient, _ := typesense.NewClient(nil, serverURL, *key.Value)
 ```
 #### Search-only API key
 ```go
@@ -131,9 +133,8 @@ the bootstrap API key
 	}
 
 	// soClient is a Search-only client
-	soClient := baseClient.WithAPIKey(*key.Value)
+	soClient, _ := typesense.NewClient(nil, serverURL, *key.Value)
 ```
->Note: `Client` instances with an API key must be derived from `baseClient` (a client with no API key set).
 
 ### Rate limiting
 The `/limits`  API endpoint allows setting rate limits based on client's API key
